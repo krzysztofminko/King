@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bae8f94581f014458371312e7ad22ee, type: 3}
   m_Name: Gold
   m_EditorClassIdentifier: 
+  startCount: 2
   model: {fileID: 0}
