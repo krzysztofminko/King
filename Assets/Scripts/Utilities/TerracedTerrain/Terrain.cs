@@ -12,7 +12,9 @@ namespace TerracedTerrain
 		public struct Layer
 		{
 			//TODO: ...
-			public Color color;
+			public Material material;
+			//[MinMaxSlider(0.0f, 1.0f)]
+			//public Vector2 range;
 		}
 		public List<Layer> layers;
 
@@ -40,192 +42,207 @@ namespace TerracedTerrain
 			yield return null;
 
 			//Generate Terraces
-			List<Vector3> vertices = new List<Vector3>();
-			List<int> triangles = new List<int>();
-			int v = 0;
-
-			for (int t = 0; t < hmpTriangles.Count / 3; t++)
+			for (int h = 0; h < mapSize.y; h++)
 			{
-				Vector3 v1 = hmpVertices[hmpTriangles[t * 3]];
-				Vector3 v2 = hmpVertices[hmpTriangles[t * 3 + 1]];
-				Vector3 v3 = hmpVertices[hmpTriangles[t * 3 + 2]];
-
-				float h1 = v1.y;
-				float h2 = v2.y;
-				float h3 = v3.y;
-
-				int hMin = Mathf.FloorToInt(Mathf.Min(h1, h2, h3));
-				int hMax = Mathf.FloorToInt(Mathf.Max(h1, h2, h3));
-
-				for (int h = hMin; h <= hMax; h++)
+				GameObject go = transform.Find(h.ToString())?.gameObject;
+				if (!go)
 				{
-					int above = 0;
+					go = new GameObject(h.ToString(), typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
+					go.transform.parent = transform;
+					go.transform.localPosition = Vector3.zero;
+				}
+				go.GetComponent<MeshRenderer>().sharedMaterial = h < layers.Count ? layers[h].material : null;
 
-					if (h1 < h)
+				Mesh mesh = new Mesh();
+				mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+
+				List<Vector3> vertices = new List<Vector3>();
+				List<int> triangles = new List<int>();
+				int v = 0;
+
+				for (int t = 0; t < hmpTriangles.Count / 3; t++)
+				{
+					Vector3 v1 = hmpVertices[hmpTriangles[t * 3]];
+					Vector3 v2 = hmpVertices[hmpTriangles[t * 3 + 1]];
+					Vector3 v3 = hmpVertices[hmpTriangles[t * 3 + 2]];
+
+					float h1 = v1.y;
+					float h2 = v2.y;
+					float h3 = v3.y;
+
+					int hMin = Mathf.FloorToInt(Mathf.Min(h1, h2, h3));
+					int hMax = Mathf.FloorToInt(Mathf.Max(h1, h2, h3));
+
+					//for (int h = hMin; h <= hMax; h++)
+					if (h >= hMin && h <= hMax)
 					{
-						if (h2 < h)
+						int above = 0;
+
+						if (h1 < h)
 						{
-							if (h3 < h)
+							if (h2 < h)
 							{
-								//all below
+								if (h3 < h)
+								{
+									//all below
+								}
+								else
+								{
+									above = 1;
+								}
 							}
 							else
 							{
-								above = 1;
+								if (h3 < h)
+								{
+									above = 1;
+									Vector3 oldv1 = v1;
+									Vector3 oldv2 = v2;
+									Vector3 oldv3 = v3;
+									v1 = oldv3;
+									v2 = oldv1;
+									v3 = oldv2;
+								}
+								else
+								{
+									above = 2;
+									Vector3 oldv1 = v1;
+									Vector3 oldv2 = v2;
+									Vector3 oldv3 = v3;
+									v1 = oldv2;
+									v2 = oldv3;
+									v3 = oldv1;
+								}
 							}
 						}
 						else
 						{
-							if (h3 < h)
+							if (h2 < h)
 							{
-								above = 1;
-								Vector3 oldv1 = v1;
-								Vector3 oldv2 = v2;
-								Vector3 oldv3 = v3;
-								v1 = oldv3;
-								v2 = oldv1;
-								v3 = oldv2;
-							}
-							else
-							{								
-								above = 2;
-								Vector3 oldv1 = v1;
-								Vector3 oldv2 = v2;
-								Vector3 oldv3 = v3;
-								v1 = oldv2;
-								v2 = oldv3;
-								v3 = oldv1;
-							}
-						}
-					}
-					else
-					{
-						if (h2 < h)
-						{
-							if (h3 < h)
-							{
-								above = 1;
-								Vector3 oldv1 = v1;
-								Vector3 oldv2 = v2;
-								Vector3 oldv3 = v3;
-								v1 = oldv2;
-								v2 = oldv3;
-								v3 = oldv1;
+								if (h3 < h)
+								{
+									above = 1;
+									Vector3 oldv1 = v1;
+									Vector3 oldv2 = v2;
+									Vector3 oldv3 = v3;
+									v1 = oldv2;
+									v2 = oldv3;
+									v3 = oldv1;
+								}
+								else
+								{
+									above = 2;
+									Vector3 oldv1 = v1;
+									Vector3 oldv2 = v2;
+									Vector3 oldv3 = v3;
+									v1 = oldv3;
+									v2 = oldv1;
+									v3 = oldv2;
+								}
 							}
 							else
 							{
-								above = 2;
-								Vector3 oldv1 = v1;
-								Vector3 oldv2 = v2;
-								Vector3 oldv3 = v3;
-								v1 = oldv3;
-								v2 = oldv1;
-								v3 = oldv2;
+								if (h3 < h)
+								{
+									above = 2;
+								}
+								else
+								{
+									above = 3;
+								}
 							}
 						}
-						else
-						{
-							if (h3 < h)
-							{
-								above = 2;
-							}
-							else
-							{
-								above = 3;
-							}
-						}
-					}
 
-					h1 = v1.y;
-					h2 = v2.y;
-					h3 = v3.y;
-					
-					Vector3 v1_c = new Vector3(v1.x, h, v1.z);
-					Vector3 v2_c = new Vector3(v2.x, h, v2.z);
-					Vector3 v3_c = new Vector3(v3.x, h, v3.z);
+						h1 = v1.y;
+						h2 = v2.y;
+						h3 = v3.y;
 
-					Vector3 v1_b = new Vector3(v1.x, h - 1, v1.z);
-					Vector3 v2_b = new Vector3(v2.x, h - 1, v2.z);
-					Vector3 v3_b = new Vector3(v3.x, h - 1, v3.z);
+						Vector3 v1_c = new Vector3(v1.x, h, v1.z);
+						Vector3 v2_c = new Vector3(v2.x, h, v2.z);
+						Vector3 v3_c = new Vector3(v3.x, h, v3.z);
 
-					if(above == 3)
-					{
-						vertices.Add(v1_c);
-						vertices.Add(v2_c);
-						vertices.Add(v3_c);
-						triangles.Add(v);
-						triangles.Add(v + 1);
-						triangles.Add(v + 2);
-						v += 3;
-					}
-					else
-					{
-						float t1 = (h1 - h) / (h1 - h3);
-						Vector3 v1_c_n = Vector3.Lerp(v1_c, v3_c, t1);
-						Vector3 v1_b_n = Vector3.Lerp(v1_b, v3_b, t1);
+						Vector3 v1_b = new Vector3(v1.x, h - 1, v1.z);
+						Vector3 v2_b = new Vector3(v2.x, h - 1, v2.z);
+						Vector3 v3_b = new Vector3(v3.x, h - 1, v3.z);
 
-						float t2 = (h2 - h) / (h2 - h3);
-						Vector3 v2_c_n = Vector3.Lerp(v2_c, v3_c, t2);
-						Vector3 v2_b_n = Vector3.Lerp(v2_b, v3_b, t2);
-
-						if (above == 2)
+						if (above == 3)
 						{
 							vertices.Add(v1_c);
 							vertices.Add(v2_c);
-							vertices.Add(v2_c_n);
-							vertices.Add(v1_c_n);
-							triangles.Add(v);
-							triangles.Add(v + 1);
-							triangles.Add(v + 2);
-							triangles.Add(v + 2);
-							triangles.Add(v + 3);
-							triangles.Add(v);
-							v += 4;
-
-							vertices.Add(v1_c_n);
-							vertices.Add(v2_c_n);
-							vertices.Add(v2_b_n);
-							vertices.Add(v1_b_n);
-							triangles.Add(v);
-							triangles.Add(v + 1);
-							triangles.Add(v + 2);
-							triangles.Add(v);
-							triangles.Add(v + 2);
-							triangles.Add(v + 3);
-							v += 4;
-						}
-						else if (above == 1)
-						{
 							vertices.Add(v3_c);
-							vertices.Add(v1_c_n);
-							vertices.Add(v2_c_n);
 							triangles.Add(v);
 							triangles.Add(v + 1);
 							triangles.Add(v + 2);
 							v += 3;
+						}
+						else
+						{
+							float t1 = (h1 - h) / (h1 - h3);
+							Vector3 v1_c_n = Vector3.Lerp(v1_c, v3_c, t1);
+							Vector3 v1_b_n = Vector3.Lerp(v1_b, v3_b, t1);
 
-							vertices.Add(v2_c_n);
-							vertices.Add(v1_c_n);
-							vertices.Add(v1_b_n);
-							vertices.Add(v2_b_n);
-							triangles.Add(v);
-							triangles.Add(v + 1);
-							triangles.Add(v + 3);
-							triangles.Add(v + 1);
-							triangles.Add(v + 2);
-							triangles.Add(v + 3);
-							v += 4;
+							float t2 = (h2 - h) / (h2 - h3);
+							Vector3 v2_c_n = Vector3.Lerp(v2_c, v3_c, t2);
+							Vector3 v2_b_n = Vector3.Lerp(v2_b, v3_b, t2);
+
+							if (above == 2)
+							{
+								vertices.Add(v1_c);
+								vertices.Add(v2_c);
+								vertices.Add(v2_c_n);
+								vertices.Add(v1_c_n);
+								triangles.Add(v);
+								triangles.Add(v + 1);
+								triangles.Add(v + 2);
+								triangles.Add(v + 2);
+								triangles.Add(v + 3);
+								triangles.Add(v);
+								v += 4;
+
+								vertices.Add(v1_c_n);
+								vertices.Add(v2_c_n);
+								vertices.Add(v2_b_n);
+								vertices.Add(v1_b_n);
+								triangles.Add(v);
+								triangles.Add(v + 1);
+								triangles.Add(v + 2);
+								triangles.Add(v);
+								triangles.Add(v + 2);
+								triangles.Add(v + 3);
+								v += 4;
+							}
+							else if (above == 1)
+							{
+								vertices.Add(v3_c);
+								vertices.Add(v1_c_n);
+								vertices.Add(v2_c_n);
+								triangles.Add(v);
+								triangles.Add(v + 1);
+								triangles.Add(v + 2);
+								v += 3;
+
+								vertices.Add(v2_c_n);
+								vertices.Add(v1_c_n);
+								vertices.Add(v1_b_n);
+								vertices.Add(v2_b_n);
+								triangles.Add(v);
+								triangles.Add(v + 1);
+								triangles.Add(v + 3);
+								triangles.Add(v + 1);
+								triangles.Add(v + 2);
+								triangles.Add(v + 3);
+								v += 4;
+							}
 						}
 					}
 				}
+				mesh.vertices = vertices.ToArray();
+				mesh.triangles = triangles.ToArray();
+				mesh.RecalculateNormals();
+				go.GetComponent<MeshFilter>().mesh = mesh;
 			}
-
-			Mesh mesh = new Mesh();
-			mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-			mesh.vertices = vertices.ToArray();
-			mesh.triangles = triangles.ToArray();
-			mesh.RecalculateNormals();
-			GetComponent<MeshFilter>().mesh = mesh;
+			for (int i = transform.childCount - 1; i >= mapSize.y; i--)
+				DestroyImmediate(transform.GetChild(i).gameObject);
 		}
 	}
 }

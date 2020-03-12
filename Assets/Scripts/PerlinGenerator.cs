@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class WorldGenerator : MonoBehaviour
+public class PerlinGenerator : MonoBehaviour
 {
 	[System.Serializable]
-	public struct Layer
+	public class PerlinLayer
 	{
 		public bool active;
 		[Range(0.00001f, 1.0f)]
@@ -15,6 +15,8 @@ public class WorldGenerator : MonoBehaviour
 		public Vector2 offset;
 		[Range(0.0f, 1.0f)]
 		public float weight;
+		[Range(-1.0f, 1.0f)]
+		public float contrast;
 	}
 
 	[OnValueChanged("Generate")]
@@ -22,7 +24,7 @@ public class WorldGenerator : MonoBehaviour
 	[OnValueChanged("Generate")]
 	public Vector3Int mapSize = new Vector3Int(100, 10, 100);
 	[OnValueChanged("Generate", true)]
-	public List<Layer> layers = new List<Layer>();
+	public List<PerlinLayer> perlinLayers = new List<PerlinLayer>();
 
 	[PreviewField(200, ObjectFieldAlignment.Center)][ReadOnly][ShowInInspector]
 	private Texture2D mapTexture;
@@ -33,7 +35,7 @@ public class WorldGenerator : MonoBehaviour
 
 	private void OnValidate()
 	{
-		mapSize = Vector3Int.Max(Vector3Int.one * 2, mapSize);
+		mapSize = Vector3Int.Max(Vector3Int.one * 1, mapSize);
 		terrain = GetComponent<TerracedTerrain.Terrain>();
 	}
 
@@ -56,6 +58,9 @@ public class WorldGenerator : MonoBehaviour
 		}
 	}
 
+	[OnValueChanged("Generate")]
+	[Range(-1.0f, 1.0f)]
+	public float contrast;
 
 	public IEnumerator GenerateCoroutine(Vector3Int mapSize)
 	{
@@ -67,13 +72,17 @@ public class WorldGenerator : MonoBehaviour
 			for (int x = 0; x < mapSize.x; x++)
 			{
 				float h = 0;
-				float weightSum = layers.FindAll(l => l.active).Sum(l => l.weight);
-				for (int i = 0; i < layers.Count; i++)
-					if (layers[i].active)
-						h += Mathf.PerlinNoise(x * layers[i].scale + layers[i].offset.x, z * layers[i].scale + layers[i].offset.y) * (layers[i].weight/weightSum);
-				//h += Mathf.PerlinNoise(x * 0.4f, z * 0.4f) * 0.1f;
-				//h += Mathf.PerlinNoise(x * 0.2f, z * 0.2f) * 0.3f;
-				//h += Mathf.PerlinNoise(x * 0.1f, z * 0.1f) * 0.6f;
+				float weightSum = perlinLayers.FindAll(l => l.active).Sum(l => l.weight);
+				for (int i = 0; i < perlinLayers.Count; i++)
+					if (perlinLayers[i].active)
+					{
+						float p = Mathf.PerlinNoise(x * perlinLayers[i].scale + perlinLayers[i].offset.x, z * perlinLayers[i].scale + perlinLayers[i].offset.y) * (perlinLayers[i].weight / weightSum);
+						float f = (perlinLayers[i].contrast + 1.0f) / (1.0f - perlinLayers[i].contrast);
+						p = Mathf.Clamp(f * (p - 0.5f) + 0.5f, 0.0f, 0.99f);
+						h += p;
+					}
+				float factor = (contrast + 1.0f) / (1.0f - contrast);
+				h = Mathf.Clamp(factor * (h - 0.5f) + 0.5f, 0.0f, 0.99f);
 				map[x, z] = h;
 				mapTexture.SetPixel(x, z, new Color(h, h, h));
 			}
