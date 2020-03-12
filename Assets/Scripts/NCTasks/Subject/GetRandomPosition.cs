@@ -12,7 +12,7 @@ namespace NodeCanvas.Tasks.Actions{
 		public BBParameter<Vector3> position;
 
 		protected override void OnExecute(){
-			position.value = agent.transform.position + new Vector3(Random.Range(-range.value, range.value), 0, Random.Range(-range.value, range.value));
+			position.value = new Vector3(Random.Range(-range.value, range.value), 0, Random.Range(-range.value, range.value)); //agent.transform.position + 
 			EndAction(true);
 		}
 	}

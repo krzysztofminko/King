@@ -1,6 +1,7 @@
 using NodeCanvas.Framework;
 using ParadoxNotion.Design;
 using System.Linq;
+using UnityEngine;
 
 namespace NodeCanvas.Tasks.Actions{
 
@@ -11,9 +12,9 @@ namespace NodeCanvas.Tasks.Actions{
 		public BBParameter<TaskProvider> taskProvider;
 
 		protected override bool OnCheck(){
-			taskProvider.value = TaskProvider.list.FindAll(t => t.active && (!t.oneSubjectOnly || !t.isReserved)).OrderBy(t => Distance.Manhattan2D(agent.transform.position, t.transform.position)).FirstOrDefault();
-			
-			return taskProvider.value;
+			TaskProvider tp = TaskProvider.listActive.FindAll(t => (!t.oneSubjectOnly || !t.isReserved)).OrderBy(t => Distance.Manhattan2D(agent.transform.position, t.transform.position)).FirstOrDefault();
+			taskProvider.value = tp;
+			return tp;
 		}
 	}
 }

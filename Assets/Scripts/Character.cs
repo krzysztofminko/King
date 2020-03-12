@@ -19,11 +19,11 @@ public class Character : MonoBehaviour
 	protected Transform headItemParent;
 	[SerializeField][Required]
 	protected Animator animator;
-	
+	[SerializeField][Required]
+	protected ParticleSystem runParticle;
+
 	public IEnumerator PlayAnimation(string animation, float normalizedEnd = 0.9f)
 	{
-		if (log)
-			Debug.Log($"{name} PlayAnimation animation:{animation}, normalizedEnd:{normalizedEnd}", this);
 		animator.Play(animation, 0);
 		yield return null;
 		while (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < normalizedEnd)

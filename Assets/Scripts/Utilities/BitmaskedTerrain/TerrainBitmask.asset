@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0f3cc667569b1d498875f81ae336c1f, type: 3}
+  m_Name: TerrainBitmask
+  m_EditorClassIdentifier: 
+  meshSizeX: 1
+  meshSizeZ: 1
+  meshes:
+  - {fileID: 1214712826171874265, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 8786138276948774843, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 8141936657919986056, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 5700435827830314993, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 5466502482315039821, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 3136449048688621429, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: -5893110819410153529, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 7686673288256900749, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: -1877089321882401507, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 6868040159489668575, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 1802014517892780003, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: -2514853882741496577, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 4562621893874508580, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 4585010328885674047, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 1322946839411546670, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}
+  - {fileID: 7056888695009016463, guid: a0b7cd9cd984ec64c96d703d40cd5c49, type: 3}

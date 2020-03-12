@@ -8,7 +8,7 @@ namespace NodeCanvas.Tasks.Conditions{
 	public class IsMotivated : ConditionTask<Subject>{
 
 		protected override bool OnCheck(){
-			return agent.goldSurplus + agent.fistSurplus > 0;
+			return agent.Motivation > 0;
 		}
 	}
 }
