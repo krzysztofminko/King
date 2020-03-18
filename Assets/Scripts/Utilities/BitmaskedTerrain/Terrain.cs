@@ -8,6 +8,7 @@ namespace BitmaskedTerrain
 {
 	public class Terrain : MonoBehaviour
 	{
+		public bool generateInEditMode;
 		public Bitmask bitmask;
 		public bool combine;
 		
@@ -27,12 +28,37 @@ namespace BitmaskedTerrain
 			Load(map);
 		}
 
-		public void Load(bool[,] map, int loadPerFrame = 0)
+		private void OnValidate()
 		{
-			StartCoroutine(_load(map, loadPerFrame));
+			if (gameObject.activeInHierarchy)
+			{
+				if (generateInEditMode)
+				{
+					bool[,] map = new bool[100, 100];
+					for (int x = 0; x < 100; x++)
+						for (int z = 0; z < 100; z++)
+							map[x, z] = Mathf.PerlinNoise(x * 0.05f, z * 0.05f) > 0.5f;
+					Load(map);
+				}
+				else
+				{
+					DestroyChildren();
+				}
+			}
 		}
 
-		private IEnumerator _load(bool[,] map, int loadPerFrame = 0)
+		private void DestroyChildren()
+		{
+			for (int i = transform.childCount - 1; i >= 0; i--)
+				DestroyImmediate(transform.GetChild(i).gameObject);
+		}
+
+		public void Load(bool[,] map, int loadPerFrame = 0)
+		{
+			StartCoroutine(LoadCoroutine(map, loadPerFrame));
+		}
+
+		private IEnumerator LoadCoroutine(bool[,] map, int loadPerFrame = 0)
 		{
 			if (!bitmask)
 			{
