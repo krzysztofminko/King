@@ -36,7 +36,7 @@ public class WorldGenerator : MonoBehaviour
 
 	private float[,] map;
 
-	
+
 	private void OnValidate()
 	{
 		mapSize = Vector3Int.Max(Vector3Int.one * 1, mapSize);

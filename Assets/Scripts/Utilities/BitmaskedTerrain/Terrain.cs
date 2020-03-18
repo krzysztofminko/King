@@ -8,10 +8,13 @@ namespace BitmaskedTerrain
 {
 	public class Terrain : MonoBehaviour
 	{
+		[OnValueChanged("Validate")]
 		public bool generateInEditMode;
+		[OnValueChanged("Validate")]
 		public Bitmask bitmask;
+		[OnValueChanged("Validate")]
 		public bool combine;
-		
+
 		public int SizeX { get; private set; }
 		public int SizeZ { get; private set; }
 		public bool[,] Map { get; private set; }
@@ -28,8 +31,9 @@ namespace BitmaskedTerrain
 			Load(map);
 		}
 
-		private void OnValidate()
+		private void Validate()
 		{
+			Debug.Log("Validate");
 			if (gameObject.activeInHierarchy)
 			{
 				if (generateInEditMode)
@@ -42,23 +46,18 @@ namespace BitmaskedTerrain
 				}
 				else
 				{
-					DestroyChildren();
+					DestroyMeshes();
 				}
 			}
 		}
 
-		private void DestroyChildren()
-		{
-			for (int i = transform.childCount - 1; i >= 0; i--)
-				DestroyImmediate(transform.GetChild(i).gameObject);
-		}
 
 		public void Load(bool[,] map, int loadPerFrame = 0)
 		{
 			StartCoroutine(LoadCoroutine(map, loadPerFrame));
 		}
 
-		private IEnumerator LoadCoroutine(bool[,] map, int loadPerFrame = 0)
+		public IEnumerator LoadCoroutine(bool[,] map, int loadPerFrame = 0)
 		{
 			if (!bitmask)
 			{
@@ -75,6 +74,8 @@ namespace BitmaskedTerrain
 				Debug.LogError("Terrain is currently loading map. Wait until it's finished.", this);
 				yield break;
 			}
+
+			DestroyMeshes();
 
 			IsLoading = true;
 
@@ -111,6 +112,7 @@ namespace BitmaskedTerrain
 			IsLoading = false;
 		}
 
+
 		private byte GetBitmaskId(int x, int z)
 		{
 			string bits = "";
@@ -126,10 +128,25 @@ namespace BitmaskedTerrain
 			return Map[Mathf.Clamp(x, 0, SizeX - 1), Mathf.Clamp(z, 0, SizeZ - 1)];
 		}
 
+		private void DestroyMeshes()
+		{
+			GetComponent<MeshFilter>().sharedMesh = null;
+			GetComponent<MeshCollider>().sharedMesh = null;
+			for (int i = transform.childCount - 1; i >= 0; i--)
+				DestroyImmediate(transform.GetChild(i).gameObject);
+		}
+
 		private void Combine()
 		{
 			MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
 			CombineInstance[] combine = new CombineInstance[meshFilters.Length];
+
+			Vector3 position = transform.position;
+			Quaternion rotation = transform.rotation;
+			Vector3 localScale = transform.localScale;
+			transform.position = Vector3.zero;
+			transform.rotation = Quaternion.identity;
+			transform.localScale = Vector3.one;
 
 			for (int i = 0; i < meshFilters.Length; i++)
 			{
@@ -137,9 +154,15 @@ namespace BitmaskedTerrain
 				combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
 				meshFilters[i].gameObject.SetActive(false);
 			}
+
 			GetComponent<MeshFilter>().sharedMesh = new Mesh();
 			GetComponent<MeshFilter>().sharedMesh.CombineMeshes(combine);
 			GetComponent<MeshCollider>().sharedMesh = GetComponent<MeshFilter>().sharedMesh;
+
+			transform.position = position;
+			transform.rotation = rotation;
+			transform.localScale = localScale;
+
 			gameObject.SetActive(true);
 		}
 	}
