@@ -6,209 +6,173 @@ using UnityEngine;
 
 public class WorldGenerator : MonoBehaviour
 {
+	[OnValueChanged("Validate")]
+	public bool generateInEditMode;
+	[OnValueChanged("Validate")]
+	public Vector3Int mapSize = new Vector3Int(100, 0, 100);
+	[OnValueChanged("Validate", true)][InlineEditor(InlineEditorModes.GUIOnly)]
+	public WorldGeneratorSettings settings;
+
+	[PreviewField(200, ObjectFieldAlignment.Center)][ReadOnly]
+	public Texture2D mapTexture;
+
 	[System.Serializable]
-	public class PerlinLayer
+	public class Region
 	{
-		public bool active;
-		[Range(0.00001f, 1.0f)]
-		public float scale;
-		public Vector2 offset;
-		[Range(0.0f, 1.0f)]
-		public float weight;
-		[Range(-1.0f, 1.0f)]
-		public float contrast;
+		public Color color = Color.black;
+		public Vector2 position;
+		public List<Region> children = new List<Region>();
 	}
 
-	public bool generateInEditMode;
-	public Vector3Int mapSize = new Vector3Int(100, 10, 100);
-	[Range(-1.0f, 1.0f)]
-	public float contrast;
-	[SerializeField]
-	private Texture2D loadTexture;
-	[PreviewField(200, ObjectFieldAlignment.Center)][ShowInInspector][ReadOnly]
-	private Texture2D mapTexture;
-	public AnimationCurve fallOff;
-	public PerlinLayer fallOffNoise;
-	public float scale = 1;
-	public List<PerlinLayer> cliffs = new List<PerlinLayer>();
-	public Transform treePrefab;
-	public List<PerlinLayer> trees = new List<PerlinLayer>();
+	[OnValueChanged("Validate")][Min(1)]
+	public int regionsMax;
+	public List<Region> regions;
 
-	private float[,] map;
-
-
-	private void OnValidate()
+	[SerializeField][HideInInspector]
+	private bool[,] _map;
+	public bool[,] Map { get => _map; private set => _map = value; }
+	private BitmaskedTerrain.Terrain terrain;
+	
+	private void Validate()
 	{
+		terrain = GetComponent<BitmaskedTerrain.Terrain>();
 		mapSize = Vector3Int.Max(Vector3Int.one * 1, mapSize);
-		if (loadTexture)
-			mapTexture = loadTexture;
 		if (gameObject.activeInHierarchy)
 		{
-			if (generateInEditMode)
-				StartCoroutine(GenerateCoroutine(mapSize));
+			if (settings && generateInEditMode)
+			{
+				StartCoroutine(GenerateCoroutine());
+			}
 			else
-				DestroyChildren();
+			{
+				terrain.Clear();
+				regions.Clear();
+			}
 		}
 	}
 
-	private void Start()
+	private void Awake()
 	{
-		StartCoroutine(GenerateCoroutine(mapSize));
-	}	
-
-
-	public IEnumerator GenerateCoroutine(Vector3Int mapSize)
+		terrain = GetComponent<BitmaskedTerrain.Terrain>();
+		StartCoroutine(GenerateCoroutine());
+	}
+	
+	public IEnumerator GenerateCoroutine()
 	{
-		float[,] map;
-		float groundHeight = 1.5f * (1.0f / mapSize.y);
-
 		//Generate heightmap
-		if (!loadTexture)
-		{
-			mapTexture = new Texture2D(mapSize.x, mapSize.z);
-			map = new float[mapSize.x, mapSize.z];
-
-			//Cliffs
-			for (int z = 0; z < mapSize.z; z++)
-				for (int x = 0; x < mapSize.x; x++)
-				{
-					//Land height
-					float h = 0;
-					float weightSum = Mathf.Max(1.0f, cliffs.FindAll(l => l.active).Sum(l => l.weight));
-					for (int i = 0; i < cliffs.Count; i++)
-						if (cliffs[i].active)
-						{
-							float p = Mathf.PerlinNoise(x * cliffs[i].scale * scale + cliffs[i].offset.x, z * cliffs[i].scale * scale + cliffs[i].offset.y);
-							float f = (cliffs[i].contrast + 1.0f) / (1.0f - cliffs[i].contrast);
-							p = Mathf.Clamp((f * (p - 0.5f) + 0.5f) * (cliffs[i].weight / weightSum), 0.0f, 0.99f);
-							h += p;
-						}
-					float factor = (contrast + 1.0f) / (1.0f - contrast);
-					h = Mathf.Clamp(factor * (h - 0.5f) + 0.5f, 0.0f, 0.99f);
-					//h *= fallOff.Evaluate((new Vector2(mapSize.x, mapSize.z) * 0.5f - new Vector2(x, z)).magnitude / (new Vector2(mapSize.x, mapSize.z) * 0.5f).magnitude);
-					//h *= fallOff.Evaluate(Distance.Manhattan2D(new Vector2(mapSize.x, mapSize.z) * 0.5f, new Vector2(x, z), Distance.Axis.z) / Distance.Manhattan2D(Vector2.zero, new Vector2(mapSize.x, mapSize.z) * 0.5f, Distance.Axis.z));
-					float horizontal = (Mathf.Abs(mapSize.x * 0.5f - x) / (mapSize.x * 0.5f)) * (1.0f - fallOffNoise.weight) + Mathf.PerlinNoise(z * fallOffNoise.scale + fallOffNoise.offset.y, 0.0f) * fallOffNoise.weight;
-					float vertical = (Mathf.Abs(mapSize.z * 0.5f - z) / (mapSize.z * 0.5f)) * (1.0f - fallOffNoise.weight) + Mathf.PerlinNoise(x * fallOffNoise.scale + fallOffNoise.offset.x, 0.0f) * fallOffNoise.weight;
-					float distance = horizontal > vertical ? horizontal : vertical;
-					h *= fallOff.Evaluate(distance);// * (fallOffNoise.active? Mathf.PerlinNoise(horizontal > vertical ? (z / mapSize.z) : (x / mapSize.x), 0.0f) : 1.0f));
-					h *= 1.0f - groundHeight;
-					h += groundHeight;
-					map[x, z] = Mathf.Clamp(h,0.0f,0.99f);
-					mapTexture.SetPixel(x, z, new Color(h, h, h));
-					/*
-					if(h == groundHeight)
-					{
-						float t = 0;
-						for (int i = 0; i < trees.Count; i++)
-							if (trees[i].active)
-							{
-								float p = Mathf.PerlinNoise(x * trees[i].scale + trees[i].offset.x, z * trees[i].scale + trees[i].offset.y);
-								float f = (trees[i].contrast + 1.0f) / (1.0f - trees[i].contrast);
-								p = Mathf.Clamp((f * (p - 0.5f) + 0.5f) * (trees[i].weight / weightSum), 0.0f, 0.99f);
-								t += p;
-							}
-						if(t < 0.5f)
-						{
-							t = 0;
-						}
-						else
-						{
-							Instantiate(treePrefab, transform.position + new Vector3(x * transform.localScale.x, h* transform.localScale.y, z * transform.localScale.z), Quaternion.AngleAxis(Random.Range(0.0f,360.0f), Vector3.up));
-						}
-					}*/
-				}
-
-			//Rivers
-			/*Vector2Int start = new Vector2Int(20, 20);
-			Vector2 mainDir = Vector2.one;
-			float sectionLength = 5;
-			for (int i = 0; i < 5; i++)
+		mapTexture = new Texture2D(mapSize.x, mapSize.z);
+		Map = new bool[mapSize.x, mapSize.z];
+		
+		for (int z = 0; z < mapSize.z; z++)
+			for (int x = 0; x < mapSize.x; x++)
 			{
-				Vector2 d = (mainDir + new Vector2(Random.Range(-0.5f, 0.5f), Random.Range(-0.5f, 0.5f))).normalized * sectionLength;
-				DrawLine(map, start, start + new Vector2Int((int)d.x, (int)d.y), (1.0f / mapSize.y) * 0.5f, 1, 10);
-				start += new Vector2Int((int)d.x, (int)d.y);
-			}*/
-			/*Vector2 point = new Vector2(20, 20);
-			Vector2 dir = new Vector2(0.5f, 0.5f);
-			for (int i = 0; i < 50; i++)
-			{
-				DrawPoint(map, new Vector2Int((int)point.x, (int)point.y), groundHeight * 0.5f, groundHeight, 5);
-				point += dir;
-			}*/
+				float h = 0;
+				float weightSum = Mathf.Max(1.0f, settings.perlinLayers.FindAll(l => l.active).Sum(l => l.weight));
+				for (int i = 0; i < settings.perlinLayers.Count; i++)
+					if (settings.perlinLayers[i].active)
+						h += Mathf.PerlinNoise(x * settings.perlinLayers[i].scale * settings.scale + settings.perlinLayers[i].offset.x, z * settings.perlinLayers[i].scale * settings.scale + settings.perlinLayers[i].offset.y) * (settings.perlinLayers[i].weight / weightSum);
 
-			//Lakes
+				float horizontal = Mathf.Abs(mapSize.x * 0.5f - x) / (mapSize.x * 0.5f);
+				float vertical = Mathf.Abs(mapSize.z * 0.5f - z) / (mapSize.z * 0.5f);
+				h *= settings.fallOffCurve.Evaluate(horizontal > vertical ? horizontal : vertical);
+
+				h = h < 0.5f ? 0 : 1;
+				Map[x, z] = h > 0;
+				mapTexture.SetPixel(x, z, new Color(h, h, h));
+			}			
 			
-
-			mapTexture.Apply();
-		}
-		else
+			/*
+		//Randomize regions
+		regions.Clear();
+		Region centralRegion = null;
+		float smallestDistance = Mathf.Infinity;
+		for (int i = 0; i < regionsMax; i++)
 		{
-			mapSize = new Vector3Int(loadTexture.width, mapSize.y, loadTexture.height);
-			map = new float[mapSize.x, mapSize.z];
-			for (int z = 0; z < mapSize.z; z++)
-				for (int x = 0; x < mapSize.x; x++)
-					map[x, z] = loadTexture.GetPixel(x, z).r;
+			float v = Random.Range(0.0f, 1.0f);
+			Region region = new Region { position = new Vector2(Random.Range(0, mapSize.x), Random.Range(0, mapSize.z)) };
+			float distance = (region.position - new Vector2(mapSize.x * 0.5f, mapSize.z * 0.5f)).sqrMagnitude;
+			if (distance < smallestDistance)
+			{
+				smallestDistance = distance;
+				centralRegion = region;
+			}
+			regions.Add(region);
 		}
-		this.map = map;
-		this.mapSize = mapSize;
 
-		//Generate meshes
-		yield return StartCoroutine(GetComponent<TerracedTerrain.Terrain>().GenerateCoroutine(mapSize.y, map));
-	}
+		Queue<Region> open = new Queue<Region>();
+		open.Enqueue(centralRegion);
+		List<Region> closed = new List<Region>();
 
-	private void DestroyChildren()
-	{
-		for (int i = transform.childCount - 1; i >= 0; i--)
-			DestroyImmediate(transform.GetChild(i).gameObject);
-	}
-
-	private void DrawLine(float[,] map, Vector2Int p0, Vector2Int p1, float value, float falloffValue = 0, int radius = 1)
-	{
-		int dx = p1.x - p0.x;
-		int dy = p1.y - p0.y;
-		var sign_x = dx > 0 ? 1 : -1;
-		var sign_y = dy > 0 ? 1 : -1;
-		dx = Mathf.Abs(dx);
-		dy = Mathf.Abs(dy);
-
-		Vector2Int p = new Vector2Int(p0.x, p0.y);
-		DrawPoint(map, p, value, falloffValue, radius);
-		float ix = 0;
-		float iy = 0;
-		while (ix < dx || iy < dy)
+		int safetyCounter = 40;
+		while(open.Count > 0 && safetyCounter > 0)
 		{
-			if ((0.5 + ix) / dx < (0.5 + iy) / dy)
-			{
-				p.x += sign_x;
-				ix++;
-			}
-			else
-			{
-				p.y += sign_y;
-				iy++;
-			}
-			DrawPoint(map, p, value, falloffValue, radius);
-		}
-	}
+			safetyCounter--;
 
-	private void DrawPoint(float [,] map, Vector2Int p, float value, float falloffValue = 0, int radius = 5)
-	{
-		if (radius < 0)
-			Debug.LogError("radius must be positive number.", this);
-
-		for (int x = -radius; x <= radius; x++)
-			for (int y = -radius; y <= radius; y++)
+			Region region = open.Dequeue();
+			float v = 1.0f - 0.5f / safetyCounter;// Random.Range(0.5f, 1.0f);
+			region.color = new Color(v, Random.Range(0.5f, 1.0f), Random.Range(0.5f, 1.0f));
+			float count = Random.Range(1.0f, 1.0f);// * (1.0f - (region.position - centralRegion.position).magnitude / new Vector2(mapSize.x, mapSize.z).magnitude);
+			for (int c = 0; c < count; c++)
 			{
-				float d = (new Vector2Int(x, y) - Vector2Int.zero).magnitude;
-				if (d <= radius)
+				Region child = null;
+				smallestDistance = Mathf.Infinity;
+				for (int r = 0; r < regions.Count; r++)
 				{
-					float v = falloffValue - (falloffValue - value) * (1.0f - d / radius);
-					if (v < map[p.x + x, p.y + y])
+					if (regions[r] != region && !closed.Contains(regions[r]) && !open.Contains(regions[r]))
 					{
-						map[p.x + x, p.y + y] = v;
-						mapTexture.SetPixel(p.x + x, p.y + y, new Color(v, v, v));
+						float distance = (region.position - regions[r].position).sqrMagnitude;
+						if (distance < smallestDistance)
+						{
+							smallestDistance = distance;
+							child = regions[r];
+						}
 					}
 				}
+				if(child != null)
+				{
+					region.children.Add(child);
+					open.Enqueue(child);
+				}				
 			}
+			closed.Add(region);
+		}
+
+		centralRegion.color = Color.red;
+
+
+
+		//Draw regions
+		for (int x = 0; x < mapSize.x; x++)
+			for (int z = 0; z < mapSize.z; z++)
+			{
+				Region closestRegion = GetClosestRegion(new Vector2(x, z));
+				if (closestRegion != null)
+				{
+					Map[x, z] = closestRegion.color.r > 0;
+					mapTexture.SetPixel(x, z, closestRegion.color);
+				}
+			}*/
+
+		mapTexture.Apply();
+
+		//Generate meshes
+		yield return StartCoroutine(GetComponent<BitmaskedTerrain.Terrain>().LoadCoroutine(Map));
 	}
+
+	private Region GetClosestRegion(Vector2 position)
+	{
+		Region closestRegion = null;
+		float smallestDistance = Mathf.Infinity;
+		for (int i = 0; i < regionsMax; i++)
+		{
+			float distance = (regions[i].position - position).sqrMagnitude;
+			if (distance < smallestDistance)
+			{
+				smallestDistance = distance;
+				closestRegion = regions[i];
+			}
+		}
+		return closestRegion;
+	}
+
 }

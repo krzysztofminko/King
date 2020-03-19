@@ -8,50 +8,16 @@ namespace BitmaskedTerrain
 {
 	public class Terrain : MonoBehaviour
 	{
-		[OnValueChanged("Validate")]
-		public bool generateInEditMode;
-		[OnValueChanged("Validate")]
 		public Bitmask bitmask;
-		[OnValueChanged("Validate")]
 		public bool combine;
 
 		public int SizeX { get; private set; }
 		public int SizeZ { get; private set; }
 		public bool[,] Map { get; private set; }
 
-		[ShowInInspector]
+		[ShowInInspector][ReadOnly]
 		public bool IsLoading { get; private set; }
 		
-		private void Awake()
-		{
-			bool[,] map = new bool[100, 100];
-			for (int x = 0; x < 100; x++)
-				for (int z = 0; z < 100; z++)
-					map[x,z] = Mathf.PerlinNoise(x * 0.05f, z * 0.05f) > 0.5f;
-			Load(map);
-		}
-
-		private void Validate()
-		{
-			Debug.Log("Validate");
-			if (gameObject.activeInHierarchy)
-			{
-				if (generateInEditMode)
-				{
-					bool[,] map = new bool[100, 100];
-					for (int x = 0; x < 100; x++)
-						for (int z = 0; z < 100; z++)
-							map[x, z] = Mathf.PerlinNoise(x * 0.05f, z * 0.05f) > 0.5f;
-					Load(map);
-				}
-				else
-				{
-					DestroyMeshes();
-				}
-			}
-		}
-
-
 		public void Load(bool[,] map, int loadPerFrame = 0)
 		{
 			StartCoroutine(LoadCoroutine(map, loadPerFrame));
@@ -75,7 +41,7 @@ namespace BitmaskedTerrain
 				yield break;
 			}
 
-			DestroyMeshes();
+			Clear();
 
 			IsLoading = true;
 
@@ -128,12 +94,20 @@ namespace BitmaskedTerrain
 			return Map[Mathf.Clamp(x, 0, SizeX - 1), Mathf.Clamp(z, 0, SizeZ - 1)];
 		}
 
-		private void DestroyMeshes()
+		public void Clear()
 		{
 			GetComponent<MeshFilter>().sharedMesh = null;
 			GetComponent<MeshCollider>().sharedMesh = null;
 			for (int i = transform.childCount - 1; i >= 0; i--)
-				DestroyImmediate(transform.GetChild(i).gameObject);
+				if (Application.isEditor)
+				{
+					transform.GetChild(i).GetComponent<MeshCollider>().sharedMesh = null;
+					DestroyImmediate(transform.GetChild(i).gameObject);
+				}
+				else
+				{
+					Destroy(transform.GetChild(i).gameObject);
+				}
 		}
 
 		private void Combine()
