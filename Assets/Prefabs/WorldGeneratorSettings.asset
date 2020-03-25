@@ -17,14 +17,32 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.75
-      value: 1
+      time: 0.1
+      value: 3
       inSlope: 0
       outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
+    - serializedVersion: 3
+      time: 0.2953282
+      value: 1.6041721
+      inSlope: -3.5503018
+      outSlope: -3.5503018
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.94694823
+      value: 0.3514099
+      inSlope: -4.8498483
+      outSlope: -4.8498483
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
       value: 0
@@ -40,7 +58,7 @@ MonoBehaviour:
   perlinLayers:
   - active: 1
     scale: 0.04
-    offset: {x: 0, y: 0}
+    offset: {x: 13, y: 13}
     weight: 1
   - active: 1
     scale: 0.08

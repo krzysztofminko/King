@@ -28,7 +28,7 @@ namespace NodeCanvas.Tasks.Actions{
 				if (timer > gatherable.value.duration / (agent.SpeedBoost > 0 ? 2 : 1))
 				{
 					agent.GetComponent<Animator>().SetTrigger("stop");
-					Resource.list[gatherable.value.resource] += gatherable.value.count;
+					Resource.count[gatherable.value.resource] += gatherable.value.count;
 					Object.Destroy(gatherable.value.gameObject);
 					agent.AssignTaskProvider(null);
 					EndAction(true);

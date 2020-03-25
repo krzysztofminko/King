@@ -42,7 +42,7 @@ public class King : Character
 		Actions();
 
 		if (Input.GetKeyDown(KeyCode.Space))
-			foreach (var r in Resource.list)
+			foreach (var r in Resource.count)
 				Debug.Log($"{r.Key}: {r.Value}");
 	}
 

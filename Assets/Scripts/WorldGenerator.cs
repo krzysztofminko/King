@@ -15,6 +15,7 @@ public class WorldGenerator : MonoBehaviour
 
 	[PreviewField(200, ObjectFieldAlignment.Center)][ReadOnly]
 	public Texture2D mapTexture;
+	public Transform treePrefab;
 
 	[System.Serializable]
 	public class Region
