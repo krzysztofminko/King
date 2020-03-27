@@ -41,6 +41,8 @@ public class King : Character
 
 		Actions();
 
+		PickupGold();
+
 		if (Input.GetKeyDown(KeyCode.Space))
 			foreach (var r in Resource.count)
 				Debug.Log($"{r.Key}: {r.Value}");
@@ -114,6 +116,21 @@ public class King : Character
 			}
 		}
 	}
+
+	private void PickupGold()
+	{
+		Collider[] colliders = Physics.OverlapSphere(transform.position, 1, LayerMask.GetMask("Gold"));
+		for (int i = 0; i < colliders.Length; i++)
+		{
+			Gold g = colliders[i].GetComponent<Gold>();
+			if (g && g.playerOnly)
+			{
+				Destroy(g.gameObject);
+				Resource.count[gold]++;
+			}
+		}
+	}
+
 	#endregion
 
 	#region Actions

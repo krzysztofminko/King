@@ -43,6 +43,7 @@ public class House : MonoBehaviour, IDamageable
 		{
 			yield return new WaitForSeconds(spawnFrequency);
 			Gold gold = Instantiate(goldPrefab, goldThrowStart.position, goldThrowStart.rotation);
+			gold.playerOnly = true;
 			gold.StartCoroutine(gold.Throw(goldThrowEnd.position));
 		}
 	}

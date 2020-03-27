@@ -8,6 +8,7 @@ public class Gold : MonoBehaviour
 
 	private new Animation animation;
 
+	public bool playerOnly;
 
 	private void Awake()
 	{

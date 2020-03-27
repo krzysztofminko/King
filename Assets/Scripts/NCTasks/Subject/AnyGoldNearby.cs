@@ -15,7 +15,7 @@ namespace NodeCanvas.Tasks.Actions
 
 		protected override bool OnCheck()
 		{
-			gold.value = Gold.listPickable.OrderBy(g => Distance.Manhattan2D(agent.transform.position, g.transform.position)).FirstOrDefault();
+			gold.value = Gold.listPickable.FindAll(g => !g.playerOnly).OrderBy(g => Distance.Manhattan2D(agent.transform.position, g.transform.position)).FirstOrDefault();
 
 			return gold.value;
 		}
