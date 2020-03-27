@@ -155,7 +155,7 @@ public class King : Character
 		}
 		else
 		{
-			yield return inHand.GetComponent<Gold>().StartCoroutine(inHand.GetComponent<Gold>().Throw(transform.position + transform.forward * 4 + Vector3.up * 0.25f, 2.5f));
+			yield return inHand.GetComponent<Gold>().StartCoroutine(inHand.GetComponent<Gold>().Throw(transform.position + transform.forward * 8 + Vector3.up * 0.25f, 2.5f));
 		}
 	}
 
