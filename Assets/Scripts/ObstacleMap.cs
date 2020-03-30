@@ -125,7 +125,7 @@ public class ObstacleMap : MonoBehaviour
 
 	private Vector2Int WorldToMapPosition(Vector2 worldPostion)
 	{
-		worldPostion = new Vector2(worldPostion.x - transform.position.x, worldPostion.y - transform.position.y);
+		worldPostion = new Vector2(worldPostion.x - transform.position.x, worldPostion.y - transform.position.z);
 		Vector2Int mapPosition = new Vector2Int(Mathf.FloorToInt(worldPostion.x / tileSize.x), Mathf.FloorToInt(worldPostion.y / tileSize.y));
 		mapPosition = new Vector2Int((int)(mapPosition.x + size.x * 0.5f), (int)(mapPosition.y + size.y * 0.5f));
 
