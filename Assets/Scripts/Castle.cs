@@ -7,6 +7,8 @@ public class Castle : MonoBehaviour
 {
 	public static Castle instance;
 
+	[Required]
+	public Transform housePrefab;
 
 	private Structure structure;
 	
@@ -20,11 +22,13 @@ public class Castle : MonoBehaviour
 
 	private IEnumerator GrowTown()
 	{
-		yield return new WaitForSeconds(2);
-
-		for (int radius = 0; radius < Mathf.Max(ObstacleMap.instance.size.x, ObstacleMap.instance.size.y); radius++)
+		while (true)
 		{
+			yield return new WaitForSeconds(1);
 
+			Vector2? position = ObstacleMap.instance.GetNearestPosition(0);
+			if (position != null)
+				Instantiate(housePrefab, new Vector3(position.Value.x + Random.Range(-ObstacleMap.instance.tileSize.x * 0.125f, ObstacleMap.instance.tileSize.x * 0.125f), 0, position.Value.y + Random.Range(-ObstacleMap.instance.tileSize.y * 0.125f, ObstacleMap.instance.tileSize.y * 0.125f)), Quaternion.Euler(0,Random.Range(-45,45),0));
 		}
 	}
 

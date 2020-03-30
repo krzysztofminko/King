@@ -1,6 +1,7 @@
 ﻿using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ObstacleMap : MonoBehaviour
@@ -12,14 +13,23 @@ public class ObstacleMap : MonoBehaviour
 	public bool outOfBoundsError;
 
 	private int[,] map;
-	[ShowInInspector][ReadOnly][PreviewField(200, ObjectFieldAlignment.Center)]
+	[ShowInInspector][ReadOnly]
+	[PreviewField(200, ObjectFieldAlignment.Center)]
 	private Texture2D mapTexture;
+
+	public List<Vector2Int> positions;
 
 	private void Awake()
 	{
 		instance = this;
 
 		map = new int[size.x, size.y];
+
+		positions = new List<Vector2Int>();
+		for (int x = 0; x < size.x; x++)
+			for (int y = 0; y < size.y; y++)
+				positions.Add(new Vector2Int(x, y));
+		positions = positions.OrderBy(p => (p - new Vector2Int(size.x / 2, size.y / 2)).magnitude).ToList();
 
 		mapTexture = new Texture2D(size.x, size.y);
 		mapTexture.filterMode = FilterMode.Point;
@@ -41,7 +51,7 @@ public class ObstacleMap : MonoBehaviour
 		if (position.x >= 0 && position.y >= 0 && position.x < size.x && position.y < size.y)
 		{
 			map[position.x, position.y]++;
-			mapTexture.SetPixel(position.x, position.y, map[position.x, position.y] > 1 ? Color.white : Color.gray);
+			mapTexture.SetPixel(position.x, position.y, map[position.x, position.y] > 1 ? Color.red : Color.yellow);
 		}
 		else if (outOfBoundsError)
 			Debug.LogError($"Out of bounds: {position}", this);
@@ -86,13 +96,50 @@ public class ObstacleMap : MonoBehaviour
 		return Get(mapPosition);
 	}
 
+	public void Inc(Rect worldRect)
+	{
+		RectInt mapRect = new RectInt(WorldToMapPosition(worldRect.position), new Vector2Int(Mathf.CeilToInt(worldRect.size.x / tileSize.x), Mathf.CeilToInt(worldRect.size.y / tileSize.y)));
+		for (int x = mapRect.xMin; x < mapRect.xMax; x++)
+			for (int y = mapRect.yMin; y < mapRect.yMax; y++)
+				Inc(new Vector2Int(x, y));
+		UpdateTexture();
+	}
+
+	public void Dec(Rect worldRect)
+	{
+		RectInt mapRect = new RectInt(WorldToMapPosition(worldRect.position), new Vector2Int(Mathf.CeilToInt(worldRect.size.x / tileSize.x), Mathf.CeilToInt(worldRect.size.y / tileSize.y)));
+		for (int x = mapRect.xMin; x < mapRect.xMax; x++)
+			for (int y = mapRect.yMin; y < mapRect.yMax; y++)
+				Dec(new Vector2Int(x, y));
+		UpdateTexture();
+	}
+
+	public Vector2? GetNearestPosition(int value = 0)
+	{
+		int id = positions.FindIndex(p => map[p.x, p.y] == value);
+		if (id > -1)
+			return MapToWorldPosition(positions[id]);
+		return null;
+	}
+
 
 	private Vector2Int WorldToMapPosition(Vector2 worldPostion)
 	{
-		Vector2Int mapPosition = new Vector2Int((int)worldPostion.x, (int)worldPostion.y) - new Vector2Int((int)transform.position.x, (int)transform.position.z);
-		mapPosition = new Vector2Int((int)(mapPosition.x / tileSize.x), (int)(mapPosition.y / tileSize.y));
+		worldPostion = new Vector2(worldPostion.x - transform.position.x, worldPostion.y - transform.position.y);
+		Vector2Int mapPosition = new Vector2Int(Mathf.FloorToInt(worldPostion.x / tileSize.x), Mathf.FloorToInt(worldPostion.y / tileSize.y));
 		mapPosition = new Vector2Int((int)(mapPosition.x + size.x * 0.5f), (int)(mapPosition.y + size.y * 0.5f));
+
 		return mapPosition;
+	}
+
+	private Vector2 MapToWorldPosition(Vector2Int mapPosition)
+	{
+		Vector2 worldPosition = new Vector2((int)(mapPosition.x - size.x * 0.5f), (int)(mapPosition.y - size.y * 0.5f));
+		worldPosition = new Vector2(worldPosition.x * tileSize.x, worldPosition.y * tileSize.y);
+		worldPosition = new Vector2(worldPosition.x + transform.position.x, worldPosition.y + transform.position.z);
+		worldPosition += new Vector2(tileSize.x * 0.5f, tileSize.y * 0.5f);
+
+		return worldPosition;
 	}
 
 

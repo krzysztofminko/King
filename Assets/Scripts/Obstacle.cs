@@ -10,10 +10,12 @@ public class Obstacle : MonoBehaviour
 	{
 		bounds = GetComponent<Collider>().bounds;
 
-		for (int x = 0; x < Mathf.CeilToInt(bounds.size.x); x++)
-			for (int z = 0; z < Mathf.CeilToInt(bounds.size.z); z++)
-				ObstacleMap.instance.Inc(new Vector2((transform.position.x + bounds.center.x - bounds.extents.x) + x, (transform.position.z + bounds.center.z - bounds.extents.z) + z));
+		ObstacleMap.instance.Inc(new Rect(new Vector2(bounds.min.x, bounds.min.z), new Vector2(bounds.size.x, bounds.size.z)));
+	}
 
-		ObstacleMap.instance.UpdateTexture();
+	private void OnDestroy()
+	{
+		if (ObstacleMap.instance)
+			ObstacleMap.instance.Dec(new Rect(new Vector2(bounds.min.x, bounds.min.z), new Vector2(bounds.size.x, bounds.size.z)));
 	}
 }
