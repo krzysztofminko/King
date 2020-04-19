@@ -16,7 +16,10 @@ public class Castle : MonoBehaviour
 	{
 		instance = this;
 		structure = GetComponent<Structure>();
+	}
 
+	private void Start()
+	{
 		StartCoroutine(GrowTown());
 	}
 

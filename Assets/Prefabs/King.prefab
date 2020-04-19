@@ -93,6 +93,7 @@ GameObject:
   - component: {fileID: 6654941888157789514}
   - component: {fileID: 3498113683365294874}
   - component: {fileID: 9026989800879463698}
+  - component: {fileID: 9006442003536579301}
   m_Layer: 0
   m_Name: King
   m_TagString: Untagged
@@ -172,6 +173,7 @@ MonoBehaviour:
   leftHandItemParent: {fileID: 2770288781514804496}
   rightHandItemParent: {fileID: 3334606017473921703}
   headItemParent: {fileID: 1919285112104883002}
+  goldLoyaltyIncrease: 0.5
   goldPrefab: {fileID: 2785554797881992134, guid: a9b62d55406c45245a842a80cb7b059d,
     type: 3}
   fistPrefab: {fileID: 2257213971585668201, guid: 1031d122100adb34487ae34e8c858c81,
@@ -221,6 +223,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gold: {fileID: 11400000, guid: 280ffba678a0ae241af7a66e97f2df31, type: 2}
+--- !u!114 &9006442003536579301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4134622097086791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84e1567ac6721b9459c389aaec34a6aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  structures:
+  - {fileID: 393590827326291559, guid: 9a9b8b4ac11c99649bf0d4d01bee8f97, type: 3}
 --- !u!1 &177354538345059301
 GameObject:
   m_ObjectHideFlags: 0
@@ -5738,10 +5754,6 @@ PrefabInstance:
     - target: {fileID: 1939477270973900, guid: bc4f23d04e42f4b559542ad840db6530, type: 3}
       propertyPath: m_Name
       value: Water
-      objectReference: {fileID: 0}
-    - target: {fileID: 1939477270973900, guid: bc4f23d04e42f4b559542ad840db6530, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4738923781260352, guid: bc4f23d04e42f4b559542ad840db6530, type: 3}
       propertyPath: m_LocalPosition.x
