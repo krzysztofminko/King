@@ -12,8 +12,6 @@ namespace NodeCanvas.Tasks.Actions{
 
 		protected override void OnExecute(){
 			timer = 0;
-
-			agent.GetComponent<Animator>().Play(gatherable.value.animation, 0);
 		}
 
 		protected override void OnUpdate()
@@ -24,10 +22,10 @@ namespace NodeCanvas.Tasks.Actions{
 			}
 			else
 			{
+				agent.GetComponent<Animator>().Play(gatherable.value.animation, 0);
 				timer += Time.deltaTime;
 				if (timer > gatherable.value.duration / (agent.SpeedBoost > 0 ? 2 : 1))
 				{
-					agent.GetComponent<Animator>().SetTrigger("stop");
 					Resource.count[gatherable.value.resource] += gatherable.value.count;
 					Object.Destroy(gatherable.value.gameObject);
 					agent.AssignTaskProvider(null);

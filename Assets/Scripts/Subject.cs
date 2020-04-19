@@ -9,6 +9,13 @@ public class Subject : Character
 {
 	public static List<Subject> list = new List<Subject>();
 
+	[SerializeField]
+	private float walkSpeed = 1;
+	[SerializeField]
+	private float runSpeed = 2;
+	[SerializeField][Required]
+	protected ParticleSystem runParticle;
+
 	public float loyalty;
 	[SerializeField][Min(0)]
 	private int _motivation;
@@ -52,10 +59,10 @@ public class Subject : Character
 	public TaskProvider TaskProvider { get; private set; }
 
 	public BehaviourTreeOwner BTOwner { get; private set; }
-
 	
-	private void Awake()
+	protected override void Awake()
 	{
+		base.Awake();
 		list.Add(this);
 		BTOwner = GetComponent<BehaviourTreeOwner>();
 	}
