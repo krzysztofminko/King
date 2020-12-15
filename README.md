@@ -8,8 +8,8 @@ Be carefull with the sword, subjects don't like it. On the other hand, coins are
 [Go to my C# scripts](Assets/Scripts)
 
 ## Implemented features
-![](Screens/anim01.gif)
 ### Player
+![](Screens/anim01.gif)
 - walking / running
 - throwing coin
 - waving sword
