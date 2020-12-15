@@ -101,7 +101,8 @@ namespace BitmaskedTerrain
 			for (int i = transform.childCount - 1; i >= 0; i--)
 				if (Application.isEditor)
 				{
-					transform.GetChild(i).GetComponent<MeshCollider>().sharedMesh = null;
+					if (transform.GetChild(i).GetComponent<MeshCollider>())
+						transform.GetChild(i).GetComponent<MeshCollider>().sharedMesh = null;
 					DestroyImmediate(transform.GetChild(i).gameObject);
 				}
 				else
