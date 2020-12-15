@@ -31,5 +31,5 @@ Be carefull with the sword, subjects don't like it. On the other hand, coins are
 
 ### Used tools
 - [Node Canvas](https://assetstore.unity.com/packages/tools/visual-scripting/nodecanvas-14914) for AI behavior trees
-- Bitmasked terrain
+- [Bitmasked terrain](https://github.com/krzysztofminko/BitmaskedTerrain)
 - Blender (every mesh and animation)
