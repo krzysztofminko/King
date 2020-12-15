@@ -16,12 +16,14 @@ Be carefull with the sword, subjects don't like it. On the other hand, coins are
 - activating workplaces (trees to chop down, rocks to mine)
 
 ### NPC
+<img src="Screens/screen02.jpg" width=600></img>
 - behavior trees AI
 - wandering around
 - running for coins
 - working in workplaces when motivated
 
 ### World
+<img src="Screens/screen03.jpg" width=600></img>
 - tileable, bitmasked, random generated terrain
 
 ### Other
